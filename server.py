@@ -11,12 +11,12 @@ board = [ [' ' , ' ' , ' '], [' ' , ' ' , ' '], [' ' , ' ' , ' ']]
 current_player = "O" 
 
 def printBoard():
-    print("",end="\t\t")
+    print("",end="")
     for i in range(3):
         for j in range(3):
-            if j == 2 : print(board[i][j],end="\n\t\t")
+            if j == 2 : print(board[i][j],end="\n")
             else : print(board[i][j],end= "|")
-        if i != 2: print("-----", end="\n\t\t")
+        if i != 2: print("-----", end="\n")
 
 def checkGame():
     if board[0][0] == board[0][1] and board[0][2] == board[0][1] and board[0][0] != ' ': return True
@@ -24,7 +24,7 @@ def checkGame():
     elif board[2][0] == board[2][1] and board[2][2] == board[2][1] and board[2][0] != ' ': return True
     elif board[0][0] == board[1][0] and board[1][0] == board[2][0] and board[0][0] != ' ': return True
     elif board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[0][1] != ' ': return True
-    elif board[0][2] == board[1][2] and board[1][2] == board[2][1] and board[0][2] != ' ': return True
+    elif board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[0][2] != ' ': return True
     elif board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][0] != ' ': return True
     elif board[0][2] == board[1][1] and board[1][1] == board[2][0] and board[0][2] != ' ': return True
     return False
@@ -36,35 +36,12 @@ def isEmpty():
                 return True
     return False
 
-# while True:
 
-#     printBoard()
-
-#     x = int(input("\nEnter x coordinate ("+ current_player + ") : " ))
-#     y = int(input("Enter y coordinate ("+ current_player + ") : " ))
-    
-#     if board[x][y] == ' ': 
-#         board[x][y] = current_player
-#     else :
-#         print("Invalid Move")
-#         continue
-#     if checkGame() == True:
-#         print( "Player (" + current_player + ") Won ")
-#         break
-#     elif not isEmpty() :
-#         print( "It's a Tie"  )
-#         break
-    
-#     if current_player == 'O':
-#         current_player = 'X'
-#     else : current_player = 'O'
 
 players = dict()
-
 i = 0
-
 while True : 
-    if len(players) == 2 :
+    if i == 2 :
         break
     clientsocket,  address = s.accept() 
     print(f"Connection from {address} has been established!!")
@@ -75,10 +52,41 @@ while True :
         players["X"] = clientsocket
     i+=1
 
-print(players)
 
-players["O"].send(bytes("WELCOME YOU ARE PLAYER \"O\"" , "utf-8"))
-players["X"].send(bytes("WELCOME YOU ARE PLAYER \"X\"" , "utf-8"))
 
-players["0"].close()
-players["X"].close()
+players["O"].send(bytes("PLAYER :WELCOME YOU ARE PLAYER \"O\"" , "utf-8"))
+players["X"].send(bytes("PLAYER :WELCOME YOU ARE PLAYER \"X\"" , "utf-8"))
+
+while True:
+
+    # printBoard()
+    players['O'].send(bytes("BOARD :"+",".join(item for inner in board for item in inner) , "utf-8"))
+    players['X'].send(bytes("BOARD :"+",".join(item for inner in board for item in inner) , "utf-8"))
+    # print("\nEnter x coordinate ("+ current_player + ") : ")
+    players[current_player].send(bytes("ENTER :Enter x coordinate  : " , "utf-8"))
+    x = int(players[current_player].recv(1024).decode("utf-8"))
+    
+    # print("\nEnter y coordinate ("+ current_player + ") : ")
+    players[current_player].send(bytes("ENTER :Enter y coordinate  : " , "utf-8"))
+    y = int(players[current_player].recv(1024).decode("utf-8"))
+    
+    
+    if board[x][y] == ' ': 
+        board[x][y] = current_player
+    else :
+        print("Invalid Move")
+        continue
+    if checkGame() == True:
+        print( "RESULT : Player (" + current_player + ") Won ")
+        players['O'].send(bytes("RESULT :Player (" + current_player + ") Won " , "utf-8"))
+        players['X'].send(bytes("RESULT :Player (" + current_player + ") Won " , "utf-8"))
+        break
+    elif not isEmpty() :
+        print( "RESULT : It's a Tie" )
+        players['O'].send(bytes("RESULT :It's a Tie" , "utf-8"))
+        players['X'].send(bytes("RESULT :It's a Tie" , "utf-8"))
+        break
+    
+    if current_player == 'O':
+        current_player = 'X'
+    else : current_player = 'O'
